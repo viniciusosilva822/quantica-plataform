@@ -1,4 +1,4 @@
-import Fastify from 'fastify';
+import Fastify, { type FastifyError } from 'fastify';
 import cors from '@fastify/cors';
 import cookie from '@fastify/cookie';
 import jwt from '@fastify/jwt';
@@ -36,7 +36,7 @@ const buildServer = async () => {
     cookie: { cookieName: 'token', signed: false },
   });
 
-  app.setErrorHandler((err, _req, reply) => {
+  app.setErrorHandler((err: FastifyError, _req, reply) => {
     if (err instanceof ZodError) {
       return reply.code(400).send({ error: 'Dados inválidos', issues: err.flatten() });
     }

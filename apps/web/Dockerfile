@@ -1,4 +1,5 @@
 FROM node:20-alpine
+RUN apk add --no-cache libc6-compat
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 WORKDIR /app
 
@@ -10,6 +11,8 @@ RUN pnpm install
 
 COPY packages/shared ./packages/shared
 COPY apps/web ./apps/web
+
+RUN pnpm --filter @plataforma/shared build
 
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}

@@ -98,20 +98,30 @@ pnpm dev
 
 ## Deploy
 
-### Backend → Railway
-1. Crie um serviço PostgreSQL no Railway. Copie a `DATABASE_URL`.
-2. Crie um serviço Node apontando para `apps/api`:
-   - Build: `pnpm install --frozen-lockfile && pnpm --filter @plataforma/api build`
-   - Start: `pnpm --filter @plataforma/api prisma migrate deploy && pnpm --filter @plataforma/api start`
-   - Root Directory: `/`
-3. Variáveis: `DATABASE_URL`, `JWT_SECRET`, `WEB_URL` (URL pública da Vercel), `HOTMART_WEBHOOK_TOKEN`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `NODE_ENV=production`.
-4. Depois do primeiro deploy, rode o seed (Railway Run): `pnpm db:seed`.
+A imagem Docker é o caminho mais previsível — Railway detecta os `Dockerfile`s automaticamente e ignora a autodetecção do nixpacks (que falha com `workspace:*` do pnpm).
 
-### Frontend → Vercel
-1. Importe o repositório, defina **Root Directory** como `apps/web`.
-2. Build command: `cd ../.. && pnpm install --frozen-lockfile && pnpm --filter @plataforma/web build`
-3. Output directory: `.next`
-4. Variável: `NEXT_PUBLIC_API_URL` = URL pública da API no Railway.
+### 1. Postgres
+No Railway, **+ New → Database → PostgreSQL**. Copie a `DATABASE_URL` do serviço.
+
+### 2. API (apps/api)
+**+ New → GitHub Repo** → selecione este repositório.
+- Em **Settings → Source**:
+  - **Root Directory**: `/`
+  - **Dockerfile Path**: `apps/api/Dockerfile`
+- Em **Variables**: `DATABASE_URL`, `JWT_SECRET`, `WEB_URL` (URL pública do front), `HOTMART_WEBHOOK_TOKEN`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `NODE_ENV=production`.
+- Em **Settings → Networking → Generate Domain** para obter a URL pública.
+- Após o primeiro deploy: **Railway Run** → `pnpm db:seed` (popula mantras, prompts, meditações, badges, admin e aluno demo).
+
+### 3. Web (apps/web)
+**+ New → GitHub Repo** → mesmo repositório, novo serviço.
+- Em **Settings → Source**:
+  - **Root Directory**: `/`
+  - **Dockerfile Path**: `apps/web/Dockerfile`
+- Em **Variables**: `NEXT_PUBLIC_API_URL` = URL pública da API.
+- Em **Settings → Networking → Generate Domain**.
+- Volte na API e atualize `WEB_URL` com a URL do front.
+
+> O frontend também pode ir para a Vercel se preferir — `Root Directory: apps/web`, build `cd ../.. && pnpm install --frozen-lockfile && pnpm --filter @plataforma/web build`.
 
 ## Webhook Hotmart
 

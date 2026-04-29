@@ -7,9 +7,10 @@ export type AuthUser = {
   email: string;
 };
 
-declare module 'fastify' {
-  interface FastifyRequest {
-    user?: AuthUser;
+declare module '@fastify/jwt' {
+  interface FastifyJWT {
+    payload: AuthUser;
+    user: AuthUser;
   }
 }
 

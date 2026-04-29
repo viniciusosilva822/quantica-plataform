@@ -19,7 +19,7 @@ export default function AdminMeditationsPage() {
   const [form, setForm] = useState({
     title: '',
     description: '',
-    category: meditationCategories[0],
+    category: meditationCategories[0] as typeof meditationCategories[number],
     durationSec: 600,
     audioUrl: '',
   });

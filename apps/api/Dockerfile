@@ -1,4 +1,5 @@
 FROM node:20-alpine
+RUN apk add --no-cache openssl libc6-compat
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 WORKDIR /app
 
@@ -11,8 +12,9 @@ RUN pnpm install
 COPY packages/shared ./packages/shared
 COPY apps/api ./apps/api
 
-RUN pnpm --filter @plataforma/api prisma generate
+RUN pnpm --filter @plataforma/shared build
+RUN pnpm --filter @plataforma/api exec prisma generate
 RUN pnpm --filter @plataforma/api build
 
 EXPOSE 3333
-CMD ["sh", "-c", "pnpm --filter @plataforma/api prisma migrate deploy && pnpm --filter @plataforma/api start"]
+CMD ["sh", "-c", "pnpm --filter @plataforma/api exec prisma migrate deploy && pnpm --filter @plataforma/api start"]

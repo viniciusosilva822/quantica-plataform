@@ -1,0 +1,298 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum AccessStatus {
+  ACTIVE
+  REFUNDED
+  CANCELLED
+  PENDING
+}
+
+enum PostKind {
+  gratidao
+  conquista
+  reflexao
+}
+
+enum LibraryKind {
+  ebook
+  audio
+  video
+  artigo
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  passwordHash String
+  name        String
+  role        Role     @default(STUDENT)
+  xp          Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  access            Access?
+  checkins          Checkin[]
+  diaryEntries      DiaryEntry[]
+  habits            Habit[]
+  habitToggles      HabitToggle[]
+  meditationLogs    MeditationLog[]
+  breathingLogs     BreathingLog[]
+  wheelEntries      WheelEntry[]
+  oracleDraws       OracleDraw[]
+  numerologyMaps    NumerologyMap[]
+  chakraResults     ChakraResult[]
+  enneagramResults  EnneagramResult[]
+  posts             Post[]
+  reactions         Reaction[]
+  badges            UserBadge[]
+}
+
+model Access {
+  id            String        @id @default(cuid())
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String        @unique
+  status        AccessStatus  @default(ACTIVE)
+  hotmartTxn    String?
+  productName   String?
+  approvedAt    DateTime      @default(now())
+  revokedAt     DateTime?
+}
+
+model Checkin {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  date      DateTime
+  mood      Int
+  energy    Int
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+  @@index([userId])
+}
+
+model DiaryPrompt {
+  id        String   @id @default(cuid())
+  text      String
+  createdAt DateTime @default(now())
+  entries   DiaryEntry[]
+}
+
+model DiaryEntry {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  prompt    DiaryPrompt? @relation(fields: [promptId], references: [id])
+  promptId  String?
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Habit {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  name      String
+  emoji     String?
+  color     String?
+  archived  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  toggles   HabitToggle[]
+
+  @@index([userId])
+}
+
+model HabitToggle {
+  id      String   @id @default(cuid())
+  habit   Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  habitId String
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  date    DateTime
+
+  @@unique([habitId, date])
+  @@index([userId, date])
+}
+
+model Meditation {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  category    String
+  durationSec Int
+  audioUrl    String
+  coverUrl    String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  logs MeditationLog[]
+}
+
+model MeditationLog {
+  id            String      @id @default(cuid())
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  meditation    Meditation? @relation(fields: [meditationId], references: [id])
+  meditationId  String?
+  durationSec   Int
+  createdAt     DateTime    @default(now())
+
+  @@index([userId])
+}
+
+model BreathingLog {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  technique   String
+  cycles      Int
+  durationSec Int
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model WheelEntry {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  scores    Json
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model OracleDraw {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  date      DateTime
+  cardId    Int
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+}
+
+model NumerologyMap {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  fullName    String
+  birthDate   DateTime
+  result      Json
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model ChakraResult {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  scores    Json
+  answers   Json
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model EnneagramResult {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  dominant  Int
+  scores    Json
+  answers   Json
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Mantra {
+  id        String   @id @default(cuid())
+  text      String
+  author    String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model LibraryItem {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  kind        LibraryKind
+  url         String
+  coverUrl    String?
+  tags        String[]    @default([])
+  createdAt   DateTime    @default(now())
+}
+
+model Live {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  scheduledAt   DateTime
+  liveUrl       String?
+  recordingUrl  String?
+  createdAt     DateTime @default(now())
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  kind      PostKind
+  content   String
+  createdAt DateTime @default(now())
+
+  reactions Reaction[]
+
+  @@index([createdAt])
+}
+
+model Reaction {
+  id      String @id @default(cuid())
+  post    Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  kind    String
+
+  @@unique([postId, userId, kind])
+}
+
+model Badge {
+  id          String @id @default(cuid())
+  code        String @unique
+  name        String
+  description String
+  emoji       String
+
+  users UserBadge[]
+}
+
+model UserBadge {
+  id       String   @id @default(cuid())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  badge    Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  badgeId  String
+  awardedAt DateTime @default(now())
+
+  @@unique([userId, badgeId])
+}

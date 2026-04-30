@@ -17,4 +17,4 @@ RUN pnpm --filter @plataforma/api exec prisma generate
 RUN pnpm --filter @plataforma/api build
 
 EXPOSE 3333
-CMD ["sh", "-c", "pnpm --filter @plataforma/api exec prisma migrate deploy && pnpm --filter @plataforma/api exec prisma db seed && pnpm --filter @plataforma/api start"]
+CMD ["sh", "-c", "pnpm --filter @plataforma/api exec prisma db push --accept-data-loss --skip-generate && pnpm --filter @plataforma/api exec prisma db seed && pnpm --filter @plataforma/api start"]

@@ -21,12 +21,13 @@ export const authRoutes = async (app: FastifyInstance) => {
     }
 
     const token = app.jwt.sign({ id: user.id, role: user.role, email: user.email });
+    const isProd = env.NODE_ENV === 'production';
     reply
       .setCookie('token', token, {
         httpOnly: true,
         path: '/',
-        sameSite: 'lax',
-        secure: env.NODE_ENV === 'production',
+        sameSite: isProd ? 'none' : 'lax',
+        secure: isProd,
         maxAge: 60 * 60 * 24 * 30,
       })
       .send({
@@ -35,7 +36,14 @@ export const authRoutes = async (app: FastifyInstance) => {
   });
 
   app.post('/auth/logout', async (_req, reply) => {
-    reply.clearCookie('token', { path: '/' }).send({ ok: true });
+    const isProd = env.NODE_ENV === 'production';
+    reply
+      .clearCookie('token', {
+        path: '/',
+        sameSite: isProd ? 'none' : 'lax',
+        secure: isProd,
+      })
+      .send({ ok: true });
   });
 
   app.get('/auth/me', { preHandler: requireAuth }, async (req) => {
